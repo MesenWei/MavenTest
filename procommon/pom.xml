@@ -1,0 +1,114 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <artifactId>maventest</artifactId>
+        <groupId>com.mesen</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>procommon</artifactId>
+    <packaging>war</packaging>
+    <name>procommon</name>
+    <url>http://maven.apache.org</url>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mesen</groupId>
+            <artifactId>abc</artifactId>
+            <version>0.0.2-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+    <!--
+        打包不同环境的包。有两种方式可以实现。
+        第一种，配置resources。第二种，配置properties。
+        第一种方式：
+            两步：
+            1.配置profiles。
+            2.配置两个resources。
+            命令：mvn clean package -P[dev,test,pro]
+        第二种方式（例子见abc项目。测试失败，原因未知）：
+            1.配置profiles（和第一种方式一样）。
+            2.配置一个resource，一个filtering。
+            命令：mvn clean package -Durl=[a,b,c]
+    -->
+    <profiles>
+        <profile>
+            <!-- 开发环境 -->
+            <id>dev</id>
+            <properties>
+                <profiles.active>dev</profiles.active>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <!-- 测试环境 -->
+            <id>test</id>
+            <properties>
+                <profiles.active>test</profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <!-- 生产环境 -->
+            <id>pro</id>
+            <properties>
+                <profiles.active>pro</profiles.active>
+            </properties>
+        </profile>
+    </profiles>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <!-- 资源根目录排除各环境的配置，防止在生成目录中多余其它目录 -->
+                <excludes>
+                    <exclude>dev/*</exclude>
+                    <exclude>test/*</exclude>
+                    <exclude>pro/*</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources/${profiles.active}</directory>
+            </resource>
+        </resources>
+        <plugins>
+            <!--
+            此插件可以使用命令直接将war上传到tomcat中
+            -->
+            <!--tomcat7-->
+            <!--<plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <url>http://192.168.178.131:8080/manager/text</url>
+                    <server>tomcat7</server>
+                    <path>/</path>
+                </configuration>
+            </plugin>-->
+            <!--tomcat8-->
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <url>http://192.168.178.131:8071/manager/text</url>
+                    <server>tomcat8</server>
+                    <path>/procommon</path>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

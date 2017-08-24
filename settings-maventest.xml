@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+
+  <!--===============================================================================-->
+  <!--依赖下载管理-->
+
+  <!--本地仓库目录-->
+  <localRepository>D://technology\maven\repository_maventest</localRepository>
+
+  <!--
+  maven镜像
+  仓库配置均指pom.xml中的repositories配置和settings中的profile配置，为了方便理解，我写的比较啰嗦。
+  当pom中的依赖（构件）在本地仓库中没有时，maven会去读取pom文件或settings文件的仓库配置来决定去中央仓库或者私有仓库下载依赖到本地仓库。
+    那么，
+    1.如果我们没有配置仓库设置（pom.xml中进行配置Repositories和settings中进行配置profile），也没有配置镜像（settings.xml中进行配置mirrors）时，
+    maven默认去本地已编译的文件中（安装包）的bin中去寻找一个jar文件，此文件中有一个pom文件并配置了的仓库，
+    文件位置是：D:\programfile\develop\apache-maven\lib\maven-model-builder-3.3.9.jar。
+    2.如果我们配置了镜像，maven在读取pom文件或settings文件中的仓库配置时，会把url映射到镜像中的url，去下载依赖到本地：
+    每一个配置的仓库，都有一个唯一id（每一个id与建立在服务器（无论是中央还是私服）上的真实仓库的id必须一致。不是镜像id，镜像id当前没有任何作用），
+    对应了其下载依赖的url及其他属性。mirrorOf中添加了的仓库id，有且只有其url才会被映射。
+
+  注意：
+  镜像只是把仓库配置中的属性：url给映射过去了，仓库里面的配置并没有改变比如snapshot。
+
+  如果mirrorOf设置为*（推荐使用*），那么所有配置的仓库（在pom文件中的repositorie配置或者settings中的profile配置）的地址就没有任何意义了，
+  但是releases和snapshot的开启与关闭仍然有效。
+  -->
+  <mirrors>
+    <mirror>
+      <id>nexuspublic</id>
+      <mirrorOf>public</mirrorOf>
+      <name>3rd part,release</name>
+      <url>http://192.168.178.131:8081/nexus/content/groups/public/</url>
+    </mirror>
+    <mirror>
+      <id>nexuspublic</id>
+      <mirrorOf>central</mirrorOf>
+      <name>central,3rd part,release</name>
+      <url>http://192.168.178.131:8081/nexus/content/repositories/central/</url>
+    </mirror>
+  </mirrors>
+
+
+  <!--
+    profiles是对maven的一些配置。
+    profiles，对maven的所有配置。
+    profile，对maven的某一个配置。
+    所有的配置在激活之前均无效。
+  -->
+  <profiles>
+    <profile>
+      <id>repository-for-snapshot</id>
+      <repositories>
+        <repository>
+          <id>maventestS</id>
+          <name>The Nexus Repository For Snapshot</name>
+          <url>http://192.168.178.131:8081/nexus/content/repositories/maventestS</url>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
+
+  <!--激活配置-->
+  <activeProfiles>
+    <!--可以开启多个-->
+    <activeProfile>repository-for-snapshot</activeProfile>
+  </activeProfiles>
+
+  <!--
+   项目发布授权设置
+  1.项目的某个模块需要供其他模块使用时，可以将被使用木块打包发布到maven私服中，供其他模块下载。
+  2.这样配置后，所有模块的release和snapshot版本都会发布到maven私服。
+
+  配置需要两步：
+  第一步是在pom文件中配置发布的仓库distributionManagement->repository；
+  第二步是在settings中配置仓库的授权servers-server，其实就是某个用户的登录名和密码。
+  其中，仓库repository的id必须与server的id一致。
+  -->
+  <servers>
+    <server>
+      <id>deployR</id>
+      <username>adminR</username>
+      <password>admin123</password>
+    </server>
+    <server>
+      <id>deployS</id>
+      <username>adminS</username>
+      <password>admin123</password>
+    </server>
+    <server>
+      <id>tomcat7</id>
+      <username>mvntest7</username>
+      <password>mvntest7</password>
+    </server>
+    <server>
+      <id>tomcat8</id>
+      <username>mvntest8</username>
+      <password>mvntest8</password>
+    </server>
+  </servers>
+</settings>

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.mesen</groupId>
+    <artifactId>maventest</artifactId>
+    <packaging>pom</packaging>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <!--
+    我们所有的maven项目都默认都会去找一个pom文件（不敢说是不是继承），
+    文件位置在D:\programfile\develop\apache-maven\lib\maven-model-builder-3.3.9
+    -->
+
+    <!--maven聚合的体现-->
+    <modules>
+        <module>procommon</module>
+        <module>abc</module>
+    </modules>
+
+    <properties>
+        <apache.comons.lang3>3.4</apache.comons.lang3>
+        <!--设置编码-->
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <!--
+        maven继承的体现：
+        所有的module依赖的包，都在这里进行管理，主要是管理版本。
+        dependencyManagement中的依赖添加了，但并未进行下载，当子项目添加了某个依赖后，jar才开始下载。
+        使用dependencyManagement主要是两点作用：
+            1.依赖的版本管理；
+            2.使用dependencyManagement后子项目并未继承任何依赖，必须添加依赖，这样做增加了子项目对依赖选择的灵活性。
+        -->
+    <dependencyManagement>
+        <dependencies>
+            <!--测试-->
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.12</version>
+                <!--只是在测试的时候会使用此包，当用用maven打成war时，此包不会被加载，故会节省空间 -->
+                <scope>test</scope>
+            </dependency>
+            <!--工具类-->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${apache.comons.lang3}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>1.2.37</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <!--仓库设置-->
+    <!--
+        1.在父项目设置的仓库，子项目会继承。
+        2.如果maven私服关闭了，那么maven会去本地已编译的文件中的bin中去寻找一个jar文件，此文件中有一个pom文件并配置了的仓库，
+        文件位置是：D:\programfile\develop\apache-maven\lib\maven-model-builder-3.3.9.jar
+        3.在pom文件中对仓库进行设置，有个最大的缺点就是其他maven项目如果想通过私服获取依赖，那么必须要也要在其pom文件中
+        配置一个repositorys，这样就比较麻烦了，所以不推荐这种方式。改用在maven的setting中配置
+        4.如果存在多个repository，在下载依赖的时候会按repository的编写顺序来选择仓库。
+    -->
+    <!--<repositories>
+        &lt;!&ndash;
+            id具有唯一性。
+            releases和snapshots代表是否可以下载releases和snapshot的包
+            releases默认开启，可以下载
+            enabled默认关闭，不可以下载
+        &ndash;&gt;
+        <repository>
+            <id>firstnexus</id>
+            <name>The first Nexus Repository</name>
+            <url>http://192.168.178.128:8081/nexus/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>-->
+
+    <!--项目发布设置-->
+    <!--
+        可以被子项目继承。
+        项目的某个模块需要供其他模块使用时，可以将被使用模块打包发布到maven私服中，供其他模块下载。
+        这样配置后，所有模块的release和snapshot版本都会发布到maven私服。
+
+        配置需要两步：
+        第一步是在pom文件中配置发布的仓库distributionManagement->repository；
+        第二步是在settings中配置仓库的授权servers->server，其实就是某个用户的登录名和密码。
+        其中，仓库repository的id必须与server的id一致。
+
+        <repository></repository>可以设置Release或者Snapshot版本的构件。
+        <snapshotRepository></snapshotRepository>只可以设置Snapshot版本的构件。
+        <distributionManagement></distributionManagement>中最多出现两个标签各一次。
+    -->
+    <distributionManagement>
+        <repository>
+            <id>deployR</id>
+            <name>maven deploy release</name>
+            <url>http://192.168.178.131:8081/nexus/content/repositories/maventestRelease/</url>
+        </repository>
+        <snapshotRepository>
+            <id>deployS</id>
+            <name>deploy for snapshot</name>
+            <url>http://192.168.178.131:8081/nexus/content/repositories/maventestS/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <!--
+        Maven有三套生命周期：clean生命周期、default生命周期、site生命周期（用得少）。生命周期可以理解为项目构建的步骤集合。
+        其中default生命周期包含多个阶段：compile->test->package->install->deploy，每一步都是顺序执行的。
+    -->
+    <build>
+        <!--pluginManagement 和 dependencyManagement 是同样的作用：
+        设置了pluginManagement后，子项目只需要添加plugin即可，不用其他繁琐的配置。
+        如果不使用pluginManagement，那么子项目就继承了全部plugin，这样是不好的。-->
+        <pluginManagement>
+            <plugins>
+                <!--添加插件需要两步才能使插件有意义：第一步是添加插件的坐标，第二步是绑定生命周期。
+                所有的插件用法建议去maven官网去查阅。-->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.0.1</version>
+                    <!--绑定生命周期-->
+                    <executions>
+                        <execution>
+                            <!--将插件绑定在compile的生命周期中，即在生命周期为compile时，执行了compile后执行该插件-->
+                            <phase>compile</phase>
+                            <!--插件目标。即执行该插件的哪个方法-->
+                            <goals>
+                                <goal>jar</goal>
+                                <goal>test-jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!--设置编译时的jdk版本-->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <source>1.7</source>
+                        <target>1.7</target>
+                    </configuration>
+                </plugin>
+
+                <!--  一般情况下，我们将用到的资源文件（各种xml，properites，xsd文件等）都放在src/main/resources下面，
+                      利用maven打包时，maven能把这些资源文件打包到相应的jar或者war里。但是放在src/main/java下面的xml文件不会被打包-->
+
+                <!--  利用此plugin，把源代码中的xml文件，
+                      打包到相应位置，这里主要是为了打包Mybatis的mapper.xml文件-->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>1.10</version>
+                    <executions>
+                        <execution>
+                            <id>add-resource</id>
+                            <phase>generate-resources</phase>
+                            <goals>
+                                <goal>add-resource</goal>
+                            </goals>
+                            <configuration>
+                                <resources>
+                                    <resource>
+                                        <directory>src/main/java</directory>
+                                        <includes>
+                                            <include>**/*.xml</include>
+                                        </includes>
+                                    </resource>
+                                </resources>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>
