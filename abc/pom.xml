@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>abc</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <name>abc</name>
     <url>http://maven.apache.org</url>
     <dependencies>
@@ -55,6 +55,7 @@
 
     <build>
         <resources>
+            <!-- $A$ -->
             <resource>
                 <directory>src/main/resources</directory>
                 <!-- 资源根目录排除各环境的配置，防止在生成目录中多余其它目录 -->
@@ -66,5 +67,21 @@
                 <filtering>true</filtering>
             </resource>
         </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <!--
+                        maven占位符，在maven打包的时候，会将占位符内容进行替换，必须与$A$处配置配合使用才生效。
+                        替换数据为pom文件的数据；
+                        替换内容为 $A$ 处所配置的资源文件中通过$$占位符包裹的内容。
+                    -->
+                    <delimiters>
+                        <delimiter>$</delimiter>
+                    </delimiters>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 </project>
